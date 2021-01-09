@@ -30,8 +30,8 @@ client.on('message', (message) => {
 
 function writeToLogs(messageContent) {
     let logentry     = parseMessage(messageContent)
-    let processedLog = processLog(logentry)
-    if(messageContent !== processedLog) {
+    let success = processLog(logentry)
+    if(success) {
         // var fs = require("fs")
         // fs.appendFile('log.txt', messageContent, function(err) {
         //     if (err) {
@@ -45,16 +45,37 @@ function writeToLogs(messageContent) {
         //         console.log("Asynchronous read: \n" + data.toString());
         //     });
         // });
-        console.log(messageContent)
+        var i
+        for(i of logsheader.logEntries) {
+            console.log(i)
+        }
     }
 }
 
 function processLog(logentry) {
+    var success = false;
     if(logsheader.count > TOTAL_LOG_COUNT) {
         console.log("logs are full - see administrator")
     } else {
         logsheader.count += 1
         console.log(logsheader.logEntries.push(logentry))
+        success = true
+    }
+
+    return success
+}
+
+const LogType = { "LOG": 1, "SLAP": 2, "TERROR": 3 };
+Object.freeze(LogType)
+
+function getLogType(type) {
+    switch (type.toLowerCase().trim()) {
+        case "slap":
+            return LogType.SLAP
+        case "terror":
+            return LogType.TERROR
+        default:
+            return LogType.LOG
     }
 }
 function parseMessage(content) {
@@ -65,7 +86,7 @@ function parseMessage(content) {
         for (i = 2; i < words.length; i++) {
             text += words[i] + " "
         }
-        return new LogEntry(1, words[1], new Date(), text)
+        return new LogEntry(1, getLogType(words[1]), new Date(), text)
     }
     return null
 }
